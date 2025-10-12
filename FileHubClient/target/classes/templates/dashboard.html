@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    nav a {
+        margin-right: 15px;
+        text-decoration: none;
+        color: #333;
+    }
+    nav a:hover {
+        text-decoration: underline;
+    }
+    table {
+        border-collapse: collapse;
+        width: 70%;
+        margin-top: 20px;
+    }
+    table, th, td {
+        border: 1px solid #aaa;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+    }
+    button.logout {
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Dashboard</h1>
+  <form action="/logout" method="post" style="margin:0;">
+    <button class="logout" type="submit">Logout</button>
+  </form>
+</header>
+
+<nav>
+  <a href="#">Home</a>
+  <a href="#">Users</a>

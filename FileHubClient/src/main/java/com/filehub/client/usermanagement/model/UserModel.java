@@ -2,7 +2,11 @@ package com.filehub.client.usermanagement.model;
 
 import java.time.LocalDateTime;
 import com.filehub.client.usermanagement.entity.UserEntity;
+import lombok.Data;
+import org.springframework.stereotype.Component;
 
+@Data
+@Component
 public class UserModel {
 
     public UserModel(UserEntity userEntity) 
@@ -35,7 +39,7 @@ public class UserModel {
 	
 	public Boolean isBlckedUser;
 	
-	public LocalDateTime lastLoggedIn;
+	public String lastLoggedIn;
 	
 	public String email;
 	
