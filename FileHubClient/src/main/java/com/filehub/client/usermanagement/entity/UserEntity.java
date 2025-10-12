@@ -47,7 +47,7 @@ public class UserEntity {
 	public Boolean isBlckedUser;
 	
     @Column(name = "lastLoggedIn")
-	public LocalDateTime lastLoggedIn;
+	public String lastLoggedIn;
 	
     @Column(nullable = false, unique = true, name = "email")
 	public String email;

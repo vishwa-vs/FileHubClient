@@ -4,19 +4,16 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
 import com.filehub.client.audit.service.AuditService;
 import com.filehub.client.usermanagement.entity.UserEntity;
 import com.filehub.client.usermanagement.model.UserModel;
 import com.filehub.client.usermanagement.service.UserService;
 
-@RestController
+@Controller
 @RequestMapping("/user")
 public class UserController {
 
@@ -26,28 +23,50 @@ public class UserController {
 	@Autowired
 	AuditService auditService;
 	
-	@PostMapping("/registerUser")
+	@PostMapping("/registeruser")
 	public String registerUser(@RequestBody UserModel userModel) 
 	{
 		auditService.setValue(userModel.userName, "User management", "RegisterUser");
 		return userService.registerUser(userModel);
 	}
+
+	@GetMapping("/loginuser")
+	public String loginUser()
+	{
+		System.out.println("loginuser");
+		return "login";
+	}
+
+	@GetMapping("/successlogin")
+	public String successLogin(Authentication authentication)
+	{
+		userService.loginUser(authentication.getName());
+		System.out.println("successlogin");
+		return "/dashboard";
+	}
+
+	@GetMapping("/dashboard")
+	public String dashboard()
+	{
+		System.out.println("dashboard");
+		return "dashboard";
+	}
 	
-	@DeleteMapping("/deleteUser")
+	@DeleteMapping("/deleteuser")
 	public void deleteUser(@RequestBody Map<String, Integer> reqest)
 	{
 		userService.deleteUser(reqest.get("userId"));
 	}
 	
-	@GetMapping("/viewUser")
+	@GetMapping("/viewuser")
 	public UserModel viewUser(@RequestBody int userId)
 	{
 		return userService.viewUser(userId);
 	}
 
-	@GetMapping("/viewAllUser")
-	public ArrayList<UserModel> viewAllUser(@RequestBody int adminUserId)
+	@GetMapping("/viewalluser")
+	public ArrayList<UserModel> viewAllUser()
 	{	
-		return userService.viewAllUser(adminUserId);
+		return userService.viewAllUser();
 	}
 }
