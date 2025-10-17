@@ -1,19 +1,14 @@
 package com.filehub.client.filemanagement.controller;
 
-import com.filehub.client.filemanagement.FMConstants;
 import com.filehub.client.filemanagement.model.ApiResponse;
 import com.filehub.client.filemanagement.model.FileData;
 import com.filehub.client.filemanagement.service.Util;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import static com.filehub.client.filemanagement.FMConstants.*;
@@ -21,13 +16,12 @@ import static com.filehub.client.filemanagement.FMConstants.*;
 @RestController
 @RequestMapping("/file")
 public class FileController {
-    private static final String SHARED_PATH = "E:\\";
 
+    @Autowired
     private final Util util;
     public FileController(Util util) {
         this.util = util;
     }
-
 
     @GetMapping("/listfile")
     public ResponseEntity<ApiResponse> listFile(@RequestParam String path)
