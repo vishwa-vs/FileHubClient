@@ -1,7 +1,7 @@
 package com.filehub.client.filemanagement.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.filehub.client.filemanagement.FMConstants;
+import com.filehub.client.FMConstants;
 import com.filehub.client.filemanagement.model.ApiResponse;
 import com.filehub.client.filemanagement.model.FileData;
 import org.springframework.core.io.FileSystemResource;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static com.filehub.client.filemanagement.FMConstants.*;
+import static com.filehub.client.FMConstants.*;
 
 @Component
 public class Util {

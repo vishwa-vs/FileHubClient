@@ -11,9 +11,9 @@ public class UserModel {
 
     public UserModel(UserEntity userEntity) 
     {
-		this.createdAt = userEntity.getCreatedAt();
 		this.email = userEntity.getEmail();
-		this.isBlckedUser = userEntity.getIsBlckedUser();
+        this.createdAt = userEntity.getCreatedAt();
+        this.isBlckedUser = userEntity.getIsBlckedUser();
 		this.lastLoggedIn = userEntity.getLastLoggedIn();
 		this.password = userEntity.getPassword();
 		this.phnNumber = userEntity.getPhnNumber();

@@ -2,6 +2,7 @@ package com.filehub.client.filemanagement.controller;
 
 import com.filehub.client.filemanagement.model.ApiResponse;
 import com.filehub.client.filemanagement.model.FileData;
+import com.filehub.client.filemanagement.model.ModifyFileRequest;
 import com.filehub.client.filemanagement.service.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -11,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.util.ArrayList;
 
-import static com.filehub.client.filemanagement.FMConstants.*;
+import static com.filehub.client.FMConstants.*;
 
 @RestController
 @RequestMapping("/file")
@@ -23,28 +24,28 @@ public class FileController {
         this.util = util;
     }
 
-    @GetMapping("/listfile")
+    @PostMapping("/listfile")
     public ResponseEntity<ApiResponse> listFile(@RequestParam String path)
     {
         try
         {
             String url = SERVER_URL + "/file/filelist?filePath="+path;
             RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<ApiResponse> responseEntity = restTemplate.getForEntity(url, ApiResponse.class);
-            ArrayList<FileData> fileList = util.getFileList(responseEntity);
-            return ResponseEntity.ok(new ApiResponse<>(200,"File list",fileList));
+            return restTemplate.getForEntity(url, ApiResponse.class);
+//            ArrayList<FileData> fileList = util.getFileList(responseEntity);
+//            return ResponseEntity.ok(new ApiResponse<>(200,"File list",fileList));
         }catch (Exception e){
             return ResponseEntity.status(500).body((new ApiResponse<>(500, "Internal server error", e.getMessage())));
         }
     }
 
-    @GetMapping("/downloadfile")
+    @PostMapping("/downloadfile")
     public ResponseEntity<?> receiveFile(@RequestParam String path)
     {
         RestTemplate restTemplate = new RestTemplate();
         String url = SERVER_URL + "/file/downloadfile?filePath="+path;
-        ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET,null,byte[].class);
-        return util.downloadFile(response);
+        return restTemplate.exchange(url, HttpMethod.GET,null,byte[].class);
+
     }
 
     @PostMapping("/uploadfile")
@@ -53,63 +54,25 @@ public class FileController {
         return util.uploadFile(file,toPath);
     }
 
-    @GetMapping("/deletefile")
-    public ResponseEntity<ApiResponse> deleteFile(@RequestParam String path)
-    {
-        try
-        {
-            File file = new File(path);
-            // Check if file exists
-            if (!file.exists() || !file.isFile()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponse<>(404, "File not found", null));
-            }
-            util.deleteFile(file);
-            return ResponseEntity.ok(
-                    new ApiResponse<>(200, "File deleted successfully", file.getAbsolutePath()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(500, "Internal server error", e.getMessage()));
-        }
-    }
 
-    @GetMapping("/transferfile")
-    public ResponseEntity<ApiResponse> transferFile(@RequestParam String sPath,@RequestParam String dPath,@RequestParam boolean move) {
+    @PostMapping("/modifyfile")
+    public ResponseEntity<ApiResponse> transferFile(@RequestBody ModifyFileRequest request) {
         try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = SERVER_URL + "/file/modifyfile";
 
-            File file = new File(sPath);
-            if (!file.exists() || !file.isFile()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponse<>(404, "File not found", null));
-            }
-            boolean isCopied = util.transferFile(sPath, dPath, move);
-            if (isCopied)
-                return ResponseEntity.ok(new ApiResponse<>(200, "File transferred  successfully", dPath));
-            return ResponseEntity.ok(new ApiResponse<>(401, "Failed to transfer", sPath));
+            ResponseEntity<ApiResponse> response = restTemplate.postForEntity(
+                    url,
+                    request,
+                    ApiResponse.class
+            );
 
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>(500, "Internal server error", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/renamefile")
-    public ResponseEntity<ApiResponse> renameFile(@RequestParam String sPath,@RequestParam String dPath,@RequestParam boolean move)
-    {
-        try {
-            File file = new File(sPath);
-            if (!file.exists() || !file.isFile()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ApiResponse<>(404, "File not found", null));
-            }
-            boolean isCopied = util.transferFile(sPath,dPath,move);
-            if (isCopied)
-                return ResponseEntity.ok(new ApiResponse<>(200, "File transferred  successfully", dPath));
-            return ResponseEntity.ok(new ApiResponse<>(401, "Failed to transfer", sPath));
+            return ResponseEntity.ok(response.getBody());
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>(500, "Internal server error", e.getMessage()));
         }
     }
+
 }
