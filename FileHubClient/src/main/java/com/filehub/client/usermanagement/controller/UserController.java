@@ -3,7 +3,9 @@ package com.filehub.client.usermanagement.controller;
 import java.util.ArrayList;
 import java.util.Map;
 
+import com.filehub.client.filemanagement.model.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -23,12 +25,19 @@ public class UserController {
 	@Autowired
 	AuditService auditService;
 	
-	@PostMapping("/registeruser")
+	@PostMapping("/postregisteruser")
 	public String registerUser(@RequestBody UserModel userModel) 
 	{
 		auditService.setValue(userModel.userName, "User management", "RegisterUser");
 		return userService.registerUser(userModel);
 	}
+
+    @GetMapping("/registeruser")
+    public String regUser()
+    {
+        System.out.println("registeruser");
+        return "registeruser";
+    }
 
 	@GetMapping("/loginuser")
 	public String loginUser()
@@ -69,4 +78,16 @@ public class UserController {
 	{	
 		return userService.viewAllUser();
 	}
+
+    @PostMapping("/modifyuser")
+    public ResponseEntity<ApiResponse<String>> modifyUser(@RequestBody UserModel userModel, @RequestParam String updatedBy)
+    {
+        return userService.modifyUser(userModel,updatedBy);
+    }
+    @PostMapping("/block-toggle")
+    public ResponseEntity<ApiResponse<String>> blockToggle(@RequestParam int id, @RequestParam String updatedBy)
+    {
+        return userService.setBlockStatus(id,updatedBy);
+    }
+
 }

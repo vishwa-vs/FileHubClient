@@ -1,52 +1,884 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard</title>
-  <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-    }
-    header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    nav a {
-        margin-right: 15px;
-        text-decoration: none;
-        color: #333;
-    }
-    nav a:hover {
-        text-decoration: underline;
-    }
-    table {
-        border-collapse: collapse;
-        width: 70%;
-        margin-top: 20px;
-    }
-    table, th, td {
-        border: 1px solid #aaa;
-    }
-    th, td {
-        padding: 8px;
-        text-align: left;
-    }
-    button.logout {
-        padding: 5px 10px;
-        cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Data List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .current-path {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .path-separator {
+            margin: 0 8px;
+            opacity: 0.7;
+        }
+
+        .path-item {
+            cursor: pointer;
+            transition: opacity 0.2s;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .path-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .path-item.current {
+            font-weight: 600;
+        }
+
+        .list-container {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+
+        .list-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-weight: bold;
+            background: #6a11cb;
+        }
+
+        .item-content {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .item-subtitle {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .item-actions {
+            position: relative;
+        }
+
+        .three-dots {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .three-dots:hover {
+            background-color: #f0f0f0;
+        }
+
+        .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: #777;
+            margin: 1px;
+        }
+
+        .menu {
+            position: absolute;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 180px;
+            z-index: 10;
+            display: none;
+            overflow: hidden;
+        }
+
+        .menu.bottom {
+            top: 100%;
+            bottom: auto;
+        }
+
+        .menu.top {
+            bottom: 100%;
+            top: auto;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .menu-item:hover {
+            background-color: #f5f7fa;
+        }
+
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-item.disabled {
+            color: #999;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .menu-item.disabled i {
+            color: #999;
+        }
+        .menu-item.delete {
+            color: #e74c3c;
+        }
+
+        .menu-item.delete i {
+            color: #e74c3c;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: transparent;
+            z-index: 5;
+            display: none;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 20;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        .rename-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 30;
+            display: none;
+            width: 300px;
+        }
+        .rename-modal h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .rename-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        .rename-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .rename-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .rename-confirm {
+            background: #6a11cb;
+            color: white;
+        }
+        .rename-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .current-path {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+
+            .list-container {
+                max-height: 65vh;
+            }
+        }
+    </style>
 </head>
 <body>
-<header>
-  <h1>Dashboard</h1>
-  <form action="/logout" method="post" style="margin:0;">
-    <button class="logout" type="submit">Logout</button>
-  </form>
-</header>
+<div class="container">
+    <header>
+        <h1>Dynamic Data List</h1>
+        <p class="subtitle">Click the 3-dot menu to see available actions</p>
+        <div class="current-path" id="currentPath">
+            <!-- Dynamic path will be inserted here -->
+        </div>
+    </header>
 
-<nav>
-  <a href="#">Home</a>
-  <a href="#">Users</a>
+    <div class="list-container" id="listContainer">
+        <!-- Dynamic content will be inserted here -->
+    </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="notification" id="notification"></div>
+
+<!-- Rename Modal -->
+<div class="rename-modal" id="renameModal">
+    <h3>Rename</h3>
+    <input type="text" class="rename-input" id="renameInput" placeholder="Enter new name">
+    <div class="rename-buttons">
+        <button class="rename-btn rename-cancel" id="renameCancel">Cancel</button>
+        <button class="rename-btn rename-confirm" id="renameConfirm">Rename</button>
+    </div>
+</div>
+<script>
+    // Sample dynamic data
+    var dynamicData = [];
+    var currentPath = [
+        { name: "Home", id: "home", path: "" }
+    ];
+    var copyPath = "";
+    var movePath = "";
+    var pasteEnabled = false;
+    var pasteAction = ""; // 'copy' or 'move'
+    var currentRenameItem = null;
+
+    document.addEventListener("DOMContentLoaded", async function() {
+        const url = "/file/listfile?path=initial";
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (!response.ok) throw new Error("Network response was not ok");
+
+            const data = await response.json();
+            dynamicData = data.data;
+
+            console.log("dynamicData populated:", dynamicData);
+            renderCurrentPath();
+            renderList(dynamicData);
+
+        } catch (error) {
+            console.error("Error fetching file list:", error);
+        }
+    });
+
+    // Function to render the current path
+    function renderCurrentPath() {
+        const pathContainer = document.getElementById('currentPath');
+        pathContainer.innerHTML = currentPath.map((item, index) => `
+            <span class="path-item ${index === currentPath.length - 1 ? 'current' : ''}"
+                  data-id="${item.id}"
+                  data-index="${index}">
+                ${item.name}
+            </span>
+            ${index < currentPath.length - 1 ? '<span class="path-separator">/</span>' : ''}
+        `).join('');
+
+        // Add event listeners to path items
+        document.querySelectorAll('.path-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                navigateToPath(index);
+            });
+        });
+    }
+
+    // Function to navigate in the path
+    function navigateToPath(index) {
+        if (index < currentPath.length - 1) {
+            // Navigate back to the clicked path level
+            currentPath = currentPath.slice(0, index + 1);
+            renderCurrentPath();
+
+            // Fetch data for the new path
+            fetchDataForPath(currentPath[currentPath.length - 1].path);
+
+            // Show notification
+            showNotification(`Navigated to ${currentPath[currentPath.length - 1].name}`);
+        }
+    }
+
+    // Function to fetch data for a specific path
+    async function fetchDataForPath(path) {
+        const url = `/file/listfile?path=${encodeURIComponent(path)}`;
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (!response.ok) throw new Error("Network response was not ok");
+
+            const data = await response.json();
+            dynamicData = data.data;
+            renderList(dynamicData);
+
+        } catch (error) {
+            console.error("Error fetching file list:", error);
+            showNotification("Error loading directory contents");
+        }
+    }
+
+    function copyFile(srcpath,destPath) {
+        console.log("copyFile");
+        const url = `/file/copyfile`;
+        const body = {
+            sPath: srcpath,   // make sure matches ModifyFileRequest fields
+            dPath: destPath
+        };
+        console.log(url);
+        const response = fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body) // send JSON body
+
+        }).then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json(); // parse JSON response
+        }).then(data => {
+            console.log("Copy response:", data);
+            showNotification("File copied successfully!");
+        }).catch(error => {
+            console.error("Error copying contents:", error);
+            showNotification("Error copying contents");
+        });
+    }
+    function moveFile(srcpath,destPath) {
+        console.log("moveFile");
+        const url = `/file/movefile`;
+        const body = {
+            sPath: srcpath,   // make sure matches ModifyFileRequest fields
+            dPath: destPath
+        };
+        console.log(url);
+        const response = fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body) // send JSON body
+
+        }).then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json(); // parse JSON response
+        }).then(data => {
+            console.log("Move response:", data);
+            showNotification("File moved successfully!");
+            // Refresh the list after successful move
+            fetchDataForPath(currentPath[currentPath.length - 1].path);
+        }).catch(error => {
+            console.error("Error moving contents:", error);
+            showNotification("Error moving contents");
+        });
+    }
+
+    function renameFile(srcpath,destPath) {
+        console.log("renameFile");
+        const url = `/file/renamefile`;
+        const body = {
+            sPath: srcpath,   // make sure matches ModifyFileRequest fields
+            dPath: destPath
+        };
+        console.log(url);
+        const response = fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body) // send JSON body
+
+        }).then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json(); // parse JSON response
+        }).then(data => {
+            console.log("Move response:", data);
+            showNotification("File renamed successfully!");
+            // Refresh the list after successful move
+            fetchDataForPath(currentPath[currentPath.length - 1].path);
+        }).catch(error => {
+            console.error("Error rename file:", error);
+            showNotification("Error rename file");
+        });
+    }
+    // Function to render the list
+    function renderList(dynamicData) {
+        const listContainer = document.getElementById('listContainer');
+
+        if (dynamicData.length === 0) {
+            listContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No items found</h3>
+                    <p>Add some items to see them listed here</p>
+                </div>
+            `;
+            return;
+        }
+
+        listContainer.innerHTML = dynamicData.map(item =>`
+            <div class="list-item" data-id="${item.id}">
+                <div class="item-icon" style="cursor: ${item.file ? 'pointer' : 'pointer'};" onclick="${item.file ? `openFileInBrowserOnClick('${item.id}')` : `navigateToFolderOnClick('${item.id}')`}">
+                    ${item.file ? "📝" : "📁"}
+                </div>
+                <div class="item-content" style="cursor: ${item.file ? 'pointer' : 'pointer'};" onclick="${item.file ? `openFileInBrowserOnClick('${item.id}')` : `navigateToFolderOnClick('${item.id}')`}">
+                    <div class="item-title">${item.fileName}</div>
+                    <div class="item-subtitle">${item.fileSize || 'Folder'}</div>
+                </div>
+                <div class="item-actions">
+                    <div class="three-dots" data-id="${item.id}">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="menu" id="menu-${item.id}">
+                        ${item.file ? `
+                            <div class="menu-item" data-action="open" data-id="${item.id}">
+                                <i class="fas fa-open"></i> Open
+                            </div>
+                            <div class="menu-item" data-action="download" data-id="${item.id}">
+                                <i class="fas fa-download"></i> Download
+                            </div>
+                            <div class="menu-item" data-action="copy" data-id="${item.id}">
+                                <i class="fas fa-copy"></i> Copy
+                            </div>
+                            <div class="menu-item" data-action="move" data-id="${item.id}">
+                                <i class="fas fa-folder"></i> Move
+                            </div>
+                        ` : `
+                            <div class="menu-item" data-action="open" data-id="${item.id}">
+                                <i class="fas fa-folder-open"></i> Open
+                            </div>
+                        <div class="menu-item" data-action="copy" data-id="${item.id}">
+                            <i class="fas fa-copy"></i> Copy
+                        </div>
+                        <div class="menu-item" data-action="move" data-id="${item.id}">
+                            <i class="fas fa-folder"></i> Move
+                        </div>
+                            ${pasteEnabled ? `
+                                <div class="menu-item" data-action="paste" data-id="${item.id}">
+                            <i class="fas fa-paste"></i> Paste
+                        </div>
+                            ` : ''}
+                        `}
+                        <div class="menu-item" data-action="rename" data-id="${item.id}">
+                            <i class="fas fa-edit"></i> Rename
+                        </div>
+                        <div class="menu-item delete" data-action="delete" data-id="${item.id}">
+                            <i class="fas fa-trash"></i> Delete
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners to 3-dot buttons
+        document.querySelectorAll('.three-dots').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const itemId = this.getAttribute('data-id');
+                const menu = document.getElementById(`menu-${itemId}`);
+
+                // Close any open menus
+                document.querySelectorAll('.menu').forEach(m => {
+                    if (m.id !== `menu-${itemId}`) {
+                        m.style.display = 'none';
+                    }
+                });
+                // Calculate available space and position menu accordingly
+                positionMenu(this, menu);
+
+                // Toggle current menu
+                if (menu.style.display === 'block') {
+                    menu.style.display = 'none';
+                    document.getElementById('overlay').style.display = 'none';
+                } else {
+                    menu.style.display = 'block';
+                    document.getElementById('overlay').style.display = 'block';
+                }
+            });
+        });
+
+        // Add event listeners to menu items
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const action = this.getAttribute('data-action');
+                const itemId = this.getAttribute('data-id');
+                handleMenuAction(action, itemId);
+            });
+        });
+    }
+
+    // Function to position menu based on available space
+    function positionMenu(button, menu) {
+        const buttonRect = button.getBoundingClientRect();
+        const menuHeight = 250; // Increased menu height to accommodate paste option
+        const viewportHeight = window.innerHeight;
+
+        // Check if there's enough space below the button
+        const spaceBelow = viewportHeight - buttonRect.bottom;
+
+        if (spaceBelow < menuHeight && buttonRect.top > menuHeight) {
+            // Not enough space below, but enough space above - open upwards
+            menu.classList.remove('bottom');
+            menu.classList.add('top');
+        } else {
+            // Enough space below - open downwards (default)
+            menu.classList.remove('top');
+            menu.classList.add('bottom');
+        }
+    }
+
+    function navigateToFolderOnClick(itemId){
+        const item = dynamicData.find(i => i.id == itemId);
+        if (!item.file) {
+            navigateToFolder(item.fileName, item.filePath);
+        }
+    }
+
+    function openFileInBrowserOnClick(itemId){
+        console.log("openFileInBrowserOnClick");
+        const item = dynamicData.find(i => i.id == itemId);
+        if (item.file) {
+            openFileInBrowser(item.filePath);
+        }
+    }
+
+    // Function to navigate to a folder
+    function navigateToFolder(folderName, folderPath) {
+        // Add new folder to path
+        console.log("navigateToFolder: "+folderPath);
+        currentPath.push({
+            name: folderName,
+            id: folderName.toLowerCase().replace(/\s+/g, '-'),
+            path: folderPath
+        });
+
+        renderCurrentPath();
+        fetchDataForPath(folderPath);
+        showNotification(`Opened folder: ${folderName}`);
+    }
+
+    // Function to handle menu actions
+    function handleMenuAction(action, itemId) {
+        const item = dynamicData.find(i => i.id == itemId);
+        let message = '';
+
+        switch(action) {
+            case 'open':
+                if (!item.file) {
+                    navigateToFolder(item.fileName, item.filePath);
+                    return;
+                } else {
+                    message = `Opening "${item.fileName}"...`;
+                    openFileInBrowser(item.filePath);
+                }
+                break;
+            case 'download':
+                downloadFile(`${item.filePath}`);
+                message = `Downloading "${item.fileName}"...`;
+                break;
+            case 'copy':
+                copyPath = item.filePath;
+                pasteEnabled = true;
+                pasteAction = 'copy';
+                message = `Copied "${item.fileName}" - ready to paste in a folder`;
+                // Re-render list to show paste option on folders
+                renderList(dynamicData);
+                break;
+            case 'move':
+                movePath = item.filePath;
+                pasteEnabled = true;
+                pasteAction = 'move';
+                message = `Ready to move "${item.fileName}" - select destination folder and paste`;
+                // Re-render list to show paste option on folders
+                renderList(dynamicData);
+                break;
+            case 'paste':
+                if (pasteEnabled && !item.file) {
+                    if (pasteAction === 'copy') {
+                        message = `Pasting "${copyPath.split('/').pop()}" to "${item.fileName}" folder`;
+                        copyFile(copyPath,item.filePath)
+                        console.log(`Copying from: ${copyPath} to folder: ${item.filePath}`);
+                    } else if (pasteAction === 'move') {
+                        message = `Moving "${movePath.split('/').pop()}" to "${item.fileName}" folder`;
+                        moveFile(movePath,item.filePath)
+                        console.log(`Moving from: ${movePath} to folder: ${item.filePath}`);
+                    }
+                    // Reset paste state after operation
+                    pasteEnabled = false;
+                    pasteAction = "";
+                    copyPath = "";
+                    movePath = "";
+                    // Re-render list to hide paste option
+                    renderList(dynamicData);
+                }
+                break;
+            case 'rename':
+                showRenameModal(item);
+                break;
+            case 'delete':
+                message = `Deleted "${item.fileName}"`;
+                // Remove from data array
+                const index = dynamicData.findIndex(i => i.id == itemId);
+                if (index !== -1) {
+                    dynamicData.splice(index, 1);
+                    renderList(dynamicData);
+                }
+                break;
+        }
+
+        // Show notification
+        if (message) {
+        showNotification(message);
+        }
+
+        // Close menu and overlay
+        document.querySelectorAll('.menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+        document.getElementById('overlay').style.display = 'none';
+    }
+    // Function to show rename modal
+    function showRenameModal(item) {
+        currentRenameItem = item;
+        const modal = document.getElementById('renameModal');
+        const input = document.getElementById('renameInput');
+        // Set current name as placeholder and value
+        input.value = item.fileName;
+        input.placeholder = item.fileName;
+        // Show modal and overlay
+        modal.style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+        // Focus on input
+        input.focus();
+        input.select();
+    }
+    // Function to handle rename confirmation
+    function confirmRename() {
+        const modal = document.getElementById('renameModal');
+        const input = document.getElementById('renameInput');
+        const newName = input.value.trim();
+        if (!newName) {
+            showNotification("Please enter a valid name");
+            return;
+        }
+        if (currentRenameItem) {
+            // Calculate new path by replacing the last part of the path with new name
+            const oldPath = currentRenameItem.filePath;
+            const pathParts = oldPath.split('/');
+            pathParts[pathParts.length - 1] = newName;
+            const newPath = pathParts.join('/');
+
+            renameFile(oldPath, newPath);
+            // Update the item name in local data for immediate feedback
+            const itemIndex = dynamicData.findIndex(i => i.id == currentRenameItem.id);
+            if (itemIndex !== -1) {
+                dynamicData[itemIndex].fileName = newName;
+                dynamicData[itemIndex].filePath = newPath;
+            }
+        }
+        // Close modal
+        modal.style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+        currentRenameItem = null;
+    }
+    // Function to cancel rename
+    function cancelRename() {
+        const modal = document.getElementById('renameModal');
+        modal.style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+        currentRenameItem = null;
+    }
+    // Event listeners for rename modal
+    document.getElementById('renameConfirm').addEventListener('click', confirmRename);
+    document.getElementById('renameCancel').addEventListener('click', cancelRename);
+    // Allow Enter key to confirm rename
+    document.getElementById('renameInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            confirmRename();
+        }
+    });
+
+    function openFileInBrowser(filePath) {
+      const fileUrl = "http://10.250.125.119:8081" + "/file/viewfile?path=" + encodeURIComponent(filePath);
+      window.open(fileUrl, "_blank"); // Opens in new browser tab
+    }
+
+    function downloadFile(filePath) {
+        console.log("filePath: ", filePath)
+        const downloadUrl = "http://10.250.125.119:8081" + "/file/downloadfile?filePath=" + encodeURIComponent(filePath);
+        window.location.href = downloadUrl; // browser starts download
+
+        <!-- fetch(`/file/downloadfile?path=${encodeURIComponent(filePath)}`, { method: "POST" }) -->
+            <!-- .then(async response => { -->
+                <!-- if (!response.ok) throw new Error(`Server responded with ${response.status}`); -->
+
+                <!-- const contentType = response.headers.get("Content-Type"); -->
+
+                <!-- if (contentType && contentType.includes("application/json")) { -->
+                    <!-- const errorData = await response.json(); -->
+                    <!-- alert(`Error: ${errorData.message || "Download failed"}`); -->
+                    <!-- return; -->
+                <!-- } -->
+
+                <!-- // Server returned a file → handle normally -->
+                <!-- const disposition = response.headers.get("Content-Disposition"); -->
+                <!-- let fileName = filePath.split("/").pop(); -->
+                <!-- if (disposition && disposition.includes("filename=")) { -->
+                    <!-- const match = disposition.match(/filename="?([^"]+)"?/); -->
+                    <!-- if (match && match[1]) fileName = match[1]; -->
+                <!-- } -->
+
+                <!-- const blob = await response.blob(); -->
+                <!-- const url = window.URL.createObjectURL(blob); -->
+                <!-- const a = document.createElement("a"); -->
+                <!-- a.href = url; -->
+                <!-- a.download = fileName; -->
+                <!-- document.body.appendChild(a); -->
+                <!-- a.click(); -->
+                <!-- a.remove(); -->
+                <!-- window.URL.revokeObjectURL(url); -->
+            <!-- }) -->
+            <!-- .catch(err => console.error("Download error:", err)); -->
+    }
+
+    // Function to show notification
+    function showNotification(message) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.style.display = 'block';
+
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+
+    // Close menu when clicking outside
+    document.getElementById('overlay').addEventListener('click', function() {
+        document.querySelectorAll('.menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+        this.style.display = 'none';
+    });
+    // Close menu when scrolling
+    window.addEventListener('scroll', function() {
+        document.querySelectorAll('.menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+        document.getElementById('overlay').style.display = 'none';
+    });
+</script>
+</body>
+</html>

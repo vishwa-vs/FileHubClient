@@ -27,8 +27,10 @@ public class SecurityConfig {
 //                                .anyRequest().permitAll()
 
                                 // Public endpoints
-                                .requestMatchers(HttpMethod.POST, "/user/registeruser").permitAll()
-                                .requestMatchers("/user/loginuser").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/user/*").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/user/registeruser").permitAll()
+                                .requestMatchers("/user/*").permitAll()
+                                .requestMatchers("/user/modifyuser","/user/block-toggle").hasRole("ADMIN")
                                 .anyRequest().authenticated()
 
                                 // Role-based URLs

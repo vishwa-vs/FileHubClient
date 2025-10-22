@@ -1,0 +1,52 @@
+import os
+import time
+from datetime import datetime
+
+
+wifi_list = ["Abi", "Rajan"]
+log_file_path = "C:/Users/Abi/Documents/error_log.log"
+
+
+def log_to_error_file(log_type, log_msg):
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(log_file_path, "a") as file:
+        file.write(f"{current_time} [{log_type}] {log_msg}\n")
+
+def exec_wifi_connect(value):
+    try:
+        return os.system(f"netsh wlan connect name=\"{value}\"")
+    except Exception as e:
+        log_to_error_file("ERROR", f"Failed to execute command for Wi-Fi: {value}. Exception: {e}")
+        return -1
+
+def check_disconnection():
+    try:
+        result = os.popen("netsh wlan show interfaces").read()
+        if "disconnected" in result.lower():
+            log_to_error_file("INFO", "Wi-Fi is disconnected.")
+            return True
+        return False
+    except Exception as e:
+        log_to_error_file("ERROR", f"Failed to check Wi-Fi status. Exception: {e}")
+        return True
+
+def toggle_wifi():
+    try:
+        is_connected = False
+        for value in wifi_list:
+            status = exec_wifi_connect(value)
+            if status == 0:
+                is_connected = True
+                log_to_error_file("INFO", f"Connected to Wi-Fi: {value}")
+                break
+        if not is_connected:
+            log_to_error_file("ERROR", f"None of the Wi-Fi networks are available from the list: {wifi_list}")
+    except Exception as e:
+        log_to_error_file("ERROR", f"Unexpected error in toggle_wifi. Exception: {e}")
+
+if __name__ == "__main__":
+    log_to_error_file("INFO", "Program started")
+    while True:
+        if check_disconnection():
+            toggle_wifi()
+        time.sleep(60)
