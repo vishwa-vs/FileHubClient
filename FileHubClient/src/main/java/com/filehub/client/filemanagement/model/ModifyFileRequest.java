@@ -8,5 +8,4 @@ import lombok.Data;
 public class ModifyFileRequest {
         private String sPath;
         private String dPath;
-        private String toWhat;
 }

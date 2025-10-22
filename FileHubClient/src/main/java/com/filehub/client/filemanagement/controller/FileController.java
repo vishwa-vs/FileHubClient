@@ -32,8 +32,6 @@ public class FileController {
             String url = SERVER_URL + "/file/filelist?filePath="+path;
             RestTemplate restTemplate = new RestTemplate();
             return restTemplate.getForEntity(url, ApiResponse.class);
-//            ArrayList<FileData> fileList = util.getFileList(responseEntity);
-//            return ResponseEntity.ok(new ApiResponse<>(200,"File list",fileList));
         }catch (Exception e){
             return ResponseEntity.status(500).body((new ApiResponse<>(500, "Internal server error", e.getMessage())));
         }
@@ -55,21 +53,64 @@ public class FileController {
     }
 
 
-    @PostMapping("/modifyfile")
-    public ResponseEntity<ApiResponse> transferFile(@RequestBody ModifyFileRequest request) {
+    @PostMapping("/copyfile")
+    public ResponseEntity<ApiResponse> copyFile(@RequestBody ModifyFileRequest request) {
         try {
+            System.out.println("copyFile: "+request.toString());
             RestTemplate restTemplate = new RestTemplate();
-            String url = SERVER_URL + "/file/modifyfile";
+            String url = SERVER_URL + "/file/copyfile";
 
             ResponseEntity<ApiResponse> response = restTemplate.postForEntity(
                     url,
                     request,
                     ApiResponse.class
             );
-
+            System.out.println("response: "+response);
             return ResponseEntity.ok(response.getBody());
 
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(500, "Internal server error", e.getMessage()));
+        }
+    }
+    @PostMapping("/movefile")
+    public ResponseEntity<ApiResponse> moveFile(@RequestBody ModifyFileRequest request) {
+        try {
+            System.out.println("moveFile: " + request.toString());
+            RestTemplate restTemplate = new RestTemplate();
+            String url = SERVER_URL + "/file/movefile";
+
+            ResponseEntity<ApiResponse> response = restTemplate.postForEntity(
+                    url,
+                    request,
+                    ApiResponse.class
+            );
+            System.out.println("response: " + response);
+            return ResponseEntity.ok(response.getBody());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(500, "Internal server error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/renamefile")
+    public ResponseEntity<ApiResponse> renameFile(@RequestBody ModifyFileRequest request) {
+        try {
+            System.out.println("renameFile: "+request.toString());
+            RestTemplate restTemplate = new RestTemplate();
+            String url = SERVER_URL + "/file/rename";
+
+            ResponseEntity<ApiResponse> response = restTemplate.postForEntity(
+                    url,
+                    request,
+                    ApiResponse.class
+            );
+            System.out.println("response: "+response);
+            return ResponseEntity.ok(response.getBody());
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>(500, "Internal server error", e.getMessage()));
         }

@@ -138,17 +138,4 @@ public class Util {
             return false;
         }
     }
-
-    public boolean deleteFile(String filePath)
-    {
-        File file = new File(filePath);
-        return deleteFile(file);
-    }
-
-    public boolean deleteFile(File file)
-    {
-        return file.delete();
-    }
-
-
 }
